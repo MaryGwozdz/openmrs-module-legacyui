@@ -35,6 +35,10 @@ public class SummaryTable {
     private static String relationshipFirstNameQuery = "SELECT given_name FROM person_name WHERE person_id = ?";
     private static String relationshipLastNameQuery = "SELECT family_name FROM person_name WHERE person_id = ?";
     private static String programNameQuery = "SELECT name FROM program WHERE program_id = ?";
+    private static String drugIdQuery = "SELECT drug_id FROM patient_history WHERE patient_id = ?";
+    private static String drugNameQuery = "SELECT name FROM drug WHERE drug_id = ?";
+    private static String allergyIdQuery = "SELECT allergy_id FROM patient_history WHERE patient_id = ?";
+    private static String allergyNameQuery = "SELECT name FROM concept_name WHERE concept_name_id = ?";
     private static String patientId;
     private static Integer userId;
     public Boolean setupComplete = false;
@@ -57,6 +61,28 @@ public class SummaryTable {
                     }
                 }
                 sumDataMap.put("Program(s)", programNameList);
+
+            }
+            if (sumDataList.contains("Medication(s)")) {
+                List<Object> drugIds = retrieveMultipleFromDB(drugIdQuery, patientId);
+                List<Object> drugNameList = new ArrayList<>();
+                for (int i = 0; i < drugIds.size(); i++) {
+                    if (drugIds.get(i) != null) {
+                        drugNameList.add(retrieveFromDB(drugNameQuery, drugIds.get(i).toString()));
+                    }
+                }
+                sumDataMap.put("Medication(s)", drugNameList);
+
+            }
+            if (sumDataList.contains("Allergies")) {
+                List<Object> allergyIds = retrieveMultipleFromDB(allergyIdQuery, patientId);
+                List<Object> allergyNameList = new ArrayList<>();
+                for (int i = 0; i < allergyIds.size(); i++) {
+                    if (allergyIds.get(i) != null) {
+                        allergyNameList.add(retrieveFromDB(allergyNameQuery, allergyIds.get(i).toString()));
+                    }
+                }
+                sumDataMap.put("Allergies", allergyNameList);
 
             }
             if (sumDataList.contains("HIV Status")) {
