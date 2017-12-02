@@ -115,10 +115,12 @@
 
 <div id="patientTabs" class="${patientVariation}">
 	<ul>
+		<openmrs:hasPrivilege privilege="Patient Dashboard - View Summary Section">
+        	<li><a id="patientSummaryTab" href="#" onclick="return changeTab(this);" hidefocus="hidefocus"><openmrs:message code="patientDashboard.summary"/></a></li>
+       	</openmrs:hasPrivilege>
 		<openmrs:hasPrivilege privilege="Patient Dashboard - View Overview Section">
 			<li><a id="patientOverviewTab" href="#" onclick="return changeTab(this);" hidefocus="hidefocus"><openmrs:message code="patientDashboard.overview"/></a></li>
 		</openmrs:hasPrivilege>
-		
 		<openmrs:globalProperty key="visits.enabled" defaultValue="true" var="visitsEnabled"/>
 		<c:choose>		
 			<c:when test='${visitsEnabled}'>
@@ -156,12 +158,20 @@
 </div>
 
 <div id="patientSections">
+	<openmrs:hasPrivilege privilege="Patient Dashboard - View Summary Section">
+		<div id="patientSummary" style="display:none;">
+
+			<openmrs:extensionPoint pointId="org.openmrs.patientDashboard.SummaryTabHeader" type="html" parameters="patientId=${patient.patientId}" />
+			<openmrs:portlet url="patientSummary" id="patientDashboardSummary" patientId="${patient.patientId}"/>
+
+		</div>
+	</openmrs:hasPrivilege>
 	<openmrs:hasPrivilege privilege="Patient Dashboard - View Overview Section">
 		<div id="patientOverview" style="display:none;">
-			
+
 			<openmrs:extensionPoint pointId="org.openmrs.patientDashboard.OverviewTabHeader" type="html" parameters="patientId=${patient.patientId}" />
 			<openmrs:portlet url="patientOverview" id="patientDashboardOverview" patientId="${patient.patientId}"/>
-			
+
 		</div>
 	</openmrs:hasPrivilege>
 	
