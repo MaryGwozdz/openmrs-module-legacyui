@@ -12,6 +12,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="org.openmrs.web.SummaryTable" %>
 <%@ page import="org.openmrs.api.context.Context" %>
+<%@ page import="org.openmrs.web.servlet.PopulateSummaryServlet" %>
 
 
 <openmrs:htmlInclude file="/scripts/easyAjax.js" />
@@ -46,50 +47,53 @@
 
 <script type="text/javascript">
     jQuery(document).ready(function(){
-        var setupCompleteJS;
         <%
             Integer userId = (Integer) Context.getAuthenticatedUser().getUserId();
-            String patientId = request.getParameter("patientId");
-            SummaryTable summaryTable = new SummaryTable(patientId, userId);
-            List<String> sumItems = summaryTable.retrieveUserSummaryItems();
-            Boolean setupComplete = sumItems.size() > 0;
-            Map<String, List<Object>> sumDataMap = new HashMap<>();
-            if (setupComplete) {
-                sumDataMap = summaryTable.generateSummaryTable(sumItems);
-            }
         %>
 
+        var userIdJS = <%= userId %>;
 
-        if( window.localStorage ) {
-          if( !localStorage.getItem('firstLoad') ) {
-            localStorage['firstLoad'] = true;
-            window.location.reload();
-          }
-          else {
-            localStorage.removeItem('firstLoad');
-          }
-        }
+        jQuery.get("http://localhost:8888/openmrs/ms/legacyui/PopulateSummaryServlet?patientId=${model.patient.patientId}&userId=" + userIdJS, function(responseJson) {
+            if(responseJson != "") {
+                jQuery('#setup').hide();
+                jQuery('#summary').show();
+                jQuery.each(responseJson, function (key, value) {
+                    var row = "<tr><td><b>" + key + "</b></td>";
+                    for (var i = 0; i < value.length; i++) {
+                        row = row + "<td>" + value[i] + "</td>";
+                    }
+                    row = row + "</tr>";
+                    jQuery("#summaryTable").append(row);
+                });
+            } else {
+                jQuery('#summary').hide();
+                jQuery('#setup').show();
+            }
+        });
 
-        setupCompleteJS = <%= setupComplete %>;
+        jQuery('#setupDoneButton').on("click", function (e) {
+            e.preventDefault();
+            jQuery.post("http://localhost:8888/openmrs/ms/legacyui/PopulateSummaryServlet?patientId=${model.patient.patientId}&userId=" + userIdJS, jQuery("input[name='sumData']:checked").serialize(), function(msg) {});
 
-        if (setupCompleteJS === true) {
-            jQuery('#setup').hide();
-            jQuery('#summary').show();
-        } else {
-            jQuery('#summary').hide();
-            jQuery('#setup').show();
-        }
+            setTimeout(function(){
+                jQuery.get("http://localhost:8888/openmrs/ms/legacyui/PopulateSummaryServlet?patientId=${model.patient.patientId}&userId=" + userIdJS, function(responseJson) {
+                    if(responseJson != null) {
+                        jQuery.each(responseJson, function (key, value) {
+                            var row = "<tr><td><b>" + key + "</b></td>";
+                            for (var i = 0; i < value.length; i++) {
+                                row = row + "<td>" + value[i] + "</td>";
+                            }
+                            row = row + "</tr>";
+                            jQuery("#summaryTable").append(row);
+                        });
+                    }
+                });
 
-        jQuery('#setupDoneButton').click(function(){
-            <%
-            String sumData[]= request.getParameterValues("sumData");
-            summaryTable.saveSetup(sumData);
-            sumDataMap = summaryTable.generateSummaryTable(sumItems);
-            setupComplete = true;
-            %>
-            jQuery('#setup').hide();
-            jQuery('#summary').show();
-            history.go(0);
+                jQuery('#setup').hide();
+                jQuery('#summary').show();
+
+            }, 2000);
+
         });
     });
 </script>
@@ -105,24 +109,14 @@
         <p><input type="checkbox" name="sumData" value="HIV Status"/>HIV Status</p>
         <p><input type="checkbox" name="sumData" value="Indication(s)"/>Indication(s)</p>
         <p><input type="checkbox" name="sumData" value="Relationship(s)"/>Relationship(s)</p>
+        <p><input type="checkbox" name="sumData" value="Medication(s)"/>Medication(s)</p>
+        <p><input type="checkbox" name="sumData" value="Allergies"/>Allergies</p>
         <p><input type="submit" id="setupDoneButton" value="Done"/>
     </form>
 </div>
 <div id="summary">
 <div id="patientActionsBoxHeader" class="boxHeader${model.patientVariation}"><openmrs:message code="Summary" /></div>
     <br>
-    <table border="3" bordercolor="#laac9b">
-    <%
-        for(Map.Entry<String, List<Object>> entry : sumDataMap.entrySet()) {
-            String key = entry.getKey();
-            %><tr><td><b><%=key %></b></td><%
-            for (Object value : entry.getValue()) {
-                %><td><%=value.toString() %></td><%
-            }
-        %></tr><%
-        }
-        %>
-        </table><%
-    %>
+    <table id="summaryTable" border="3" bordercolor="#laac9b"></table>
 </div>
 </openmrs:hasPrivilege>

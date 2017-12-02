@@ -135,7 +135,11 @@
 			</c:otherwise>
 			
 		</c:choose>
-		
+
+		<openmrs:hasPrivilege privilege="Patient Dashboard - View History Section">
+        	<li><a id="patientHistoryTab" href="#" onclick="return changeTab(this);" hidefocus="hidefocus"><openmrs:message code="History"/></a></li>
+       	</openmrs:hasPrivilege>
+
 		<openmrs:hasPrivilege privilege="Patient Dashboard - View Demographics Section">
 			<li><a id="patientDemographicsTab" href="#" onclick="return changeTab(this);" hidefocus="hidefocus"><openmrs:message code="patientDashboard.demographics"/></a></li>
 		</openmrs:hasPrivilege>
@@ -200,7 +204,14 @@
 			</c:otherwise>
 			
 	</c:choose>
-	
+
+	<openmrs:hasPrivilege privilege="Patient Dashboard - View History Section">
+    	<div id="patientHistory" style="display:none;">
+       		<openmrs:extensionPoint pointId="org.openmrs.patientDashboard.HistoryTabHeader" type="html" parameters="patientId=${patient.patientId}" />
+    		<openmrs:portlet url="patientHistory" id="patientDashboardHistory" patientId="${patient.patientId}"/>
+       	</div>
+    </openmrs:hasPrivilege>
+
 	<openmrs:hasPrivilege privilege="Patient Dashboard - View Demographics Section">
 		<div id="patientDemographics" style="display:none;">
 			
